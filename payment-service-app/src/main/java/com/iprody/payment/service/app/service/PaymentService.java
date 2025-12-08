@@ -13,9 +13,9 @@ import java.util.UUID;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
 
-    public Payment getPaymentById(UUID paymentId) {
-        return paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found with id: " + paymentId));
+    public Payment getPaymentByGuid(UUID guid) {
+        return paymentRepository.findById(guid)
+                .orElseThrow(() -> new RuntimeException("Payment not found with guid: " + guid));
     }
 
     public List<Payment> getPayments() {

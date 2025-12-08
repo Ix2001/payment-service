@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,9 +17,9 @@ import java.util.*;
 public class PaymentController {
     private final PaymentService paymentService;
 
-    @GetMapping("/{id}")
-    public Payment getPaymentById(@PathVariable UUID id) {
-        return paymentService.getPaymentById(id);
+    @GetMapping("/{guid}")
+    public Payment getPaymentByGuid(@PathVariable UUID guid) {
+        return paymentService.getPaymentByGuid(guid);
     }
 
     @GetMapping()
