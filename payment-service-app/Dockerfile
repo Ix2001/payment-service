@@ -1,5 +1,13 @@
-FROM eclipse-temurin:21-jre-alpine
-ARG JAR_FILE=app.jar
+# Build stage
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
-COPY target/${JAR_FILE} app.jar
+COPY pom.xml .
+COPY src ./src
+RUN apk add --no-cache maven && \
+    mvn clean package -DskipTests
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/payment-service-app-*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
