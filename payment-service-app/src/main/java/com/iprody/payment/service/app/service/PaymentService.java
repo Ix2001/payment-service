@@ -1,8 +1,13 @@
 package com.iprody.payment.service.app.service;
 
 import com.iprody.payment.service.app.models.Payment;
+import com.iprody.payment.service.app.persistence.PaymentFilter;
+import com.iprody.payment.service.app.persistence.PaymentFilterFactory;
 import com.iprody.payment.service.app.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,5 +25,15 @@ public class PaymentService {
 
     public List<Payment> getPayments() {
         return paymentRepository.findAll();
+    }
+
+    public List<Payment> search(PaymentFilter filter) {
+        Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
+        return paymentRepository.findAll(spec);
+    }
+
+    public Page<Payment> searchPaged(PaymentFilter filter, Pageable pageable) {
+        Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
+        return paymentRepository.findAll(spec, pageable);
     }
 }
