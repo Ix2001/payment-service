@@ -2,6 +2,8 @@ package com.iprody.payment.service.app.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -31,7 +33,8 @@ public class Payment {
     private UUID transactionRefId;
 
     @Column(name = "status", nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;
 
     @Column(name = "note", columnDefinition = "text")
     private String note;
