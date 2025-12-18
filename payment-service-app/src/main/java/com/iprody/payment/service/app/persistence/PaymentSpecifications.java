@@ -1,6 +1,7 @@
 package com.iprody.payment.service.app.persistence;
 
 import com.iprody.payment.service.app.models.Payment;
+import com.iprody.payment.service.app.models.PaymentStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -38,7 +39,7 @@ public final class PaymentSpecifications {
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("createdAt"), before);
     }
 
-    public static Specification<Payment> hasStatus(String status) {
+    public static Specification<Payment> hasStatus(PaymentStatus status) {
         return (root, query, cb) -> cb.equal(root.get("status"), status);
     }
 }

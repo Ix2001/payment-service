@@ -33,7 +33,7 @@ public final class PaymentFilterFactory {
             spec = spec.and(PaymentSpecifications.createdBefore(filter.getCreatedBefore()));
         }
 
-        if (StringUtils.hasText(filter.getStatus())) {
+        if (filter.getStatus() != null) {
             spec = spec.and(PaymentSpecifications.hasStatus(filter.getStatus()));
         }
 
