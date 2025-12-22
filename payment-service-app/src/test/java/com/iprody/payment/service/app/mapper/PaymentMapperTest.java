@@ -82,5 +82,41 @@ class PaymentMapperTest {
         assertThat(entity.getCreatedAt()).isEqualTo(dto.getCreatedAt().atOffset(java.time.ZoneOffset.UTC));
         assertThat(entity.getUpdatedAt()).isEqualTo(dto.getUpdatedAt().atOffset(java.time.ZoneOffset.UTC));
     }
+
+    @Test
+    void shouldUpdateEntity() {
+        UUID id = UUID.randomUUID();
+        UUID inquiryRefId = UUID.randomUUID();
+        UUID transactionRefId = UUID.randomUUID();
+        Instant createdAt = Instant.now();
+        Instant updatedAt = Instant.now();
+
+        PaymentDto paymentDto = new PaymentDto();
+        paymentDto.setGuid(id);
+        paymentDto.setInquiryRefId(inquiryRefId);
+        paymentDto.setAmount(new BigDecimal("999.99"));
+        paymentDto.setCurrency("EUR");
+        paymentDto.setTransactionRefId(transactionRefId);
+        paymentDto.setStatus(PaymentStatus.APPROVED);
+        paymentDto.setNote("Test note");
+        paymentDto.setCreatedAt(createdAt);
+        paymentDto.setUpdatedAt(updatedAt);
+
+        Payment payment = new Payment();
+        payment.setGuid(id);
+
+        Payment entity = mapper.updateEntity(paymentDto, payment);
+
+        assertThat(entity).isNotNull();
+        assertThat(entity.getGuid()).isEqualTo(paymentDto.getGuid());
+        assertThat(entity.getInquiryRefId()).isEqualTo(paymentDto.getInquiryRefId());
+        assertThat(entity.getAmount()).isEqualTo(paymentDto.getAmount());
+        assertThat(entity.getCurrency()).isEqualTo(paymentDto.getCurrency());
+        assertThat(entity.getTransactionRefId()).isEqualTo(paymentDto.getTransactionRefId());
+        assertThat(entity.getStatus()).isEqualTo(paymentDto.getStatus());
+        assertThat(entity.getNote()).isEqualTo(paymentDto.getNote());
+        assertThat(entity.getCreatedAt()).isEqualTo(paymentDto.getCreatedAt().atOffset(java.time.ZoneOffset.UTC));
+        assertThat(entity.getUpdatedAt()).isEqualTo(paymentDto.getUpdatedAt().atOffset(java.time.ZoneOffset.UTC));
+    }
 }
 

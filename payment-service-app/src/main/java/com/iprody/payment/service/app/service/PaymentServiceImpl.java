@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -23,9 +24,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto get(UUID id) {
-        return paymentRepository.findById(id)
-                .map(paymentMapper::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Платеж не найден: " + id));
+        Payment payment = getById(id);
+        return paymentMapper.toDto(payment);
     }
 
     @Override
@@ -33,5 +33,43 @@ public class PaymentServiceImpl implements PaymentService {
         Specification<Payment> spec = PaymentFilterFactory.fromFilter(filter);
         Page<Payment> page = paymentRepository.findAll(spec, pageable);
         return page.map(paymentMapper::toDto);
+    }
+
+    @Transactional
+    @Override
+    public PaymentDto create(PaymentDto paymentDto) {
+        Payment payment = paymentMapper.toEntity(paymentDto);
+        paymentRepository.save(payment);
+        return paymentMapper.toDto(payment);
+    }
+
+    @Override
+    @Transactional
+    public PaymentDto update(UUID id, PaymentDto paymentDto) {
+        Payment payment = getById(id);
+        paymentMapper.updateEntity(paymentDto, payment);
+        Payment savedPayment = paymentRepository.save(payment);
+        return paymentMapper.toDto(savedPayment);
+    }
+
+    @Override
+    @Transactional
+    public PaymentDto updateNote(UUID id, String note) {
+        Payment payment = getById(id);
+        payment.setNote(note);
+        Payment savedPayment = paymentRepository.save(payment);
+        return paymentMapper.toDto(savedPayment);
+    }
+
+    @Override
+    @Transactional
+    public void delete(UUID id) {
+        Payment payment = getById(id);
+        paymentRepository.delete(payment);
+    }
+
+    private Payment getById(UUID id) {
+        return paymentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Платеж не найден: " + id));
     }
 }

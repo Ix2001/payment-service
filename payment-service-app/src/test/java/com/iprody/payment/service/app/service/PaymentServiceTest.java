@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -366,5 +365,120 @@ class PaymentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         verify(paymentRepository).findAll(any(Specification.class), eq(pageable));
+    }
+
+    @Test
+    void shouldCreatePayment() {
+        PaymentDto newPaymentDto = new PaymentDto();
+        newPaymentDto.setInquiryRefId(UUID.randomUUID());
+        newPaymentDto.setAmount(new BigDecimal("200.00"));
+        newPaymentDto.setCurrency("EUR");
+        newPaymentDto.setStatus(PaymentStatus.CREATED);
+        newPaymentDto.setNote("New payment");
+        newPaymentDto.setCreatedAt(OffsetDateTime.now().toInstant());
+        newPaymentDto.setUpdatedAt(OffsetDateTime.now().toInstant());
+
+        Payment newPayment = new Payment();
+        newPayment.setGuid(UUID.randomUUID());
+        newPayment.setInquiryRefId(newPaymentDto.getInquiryRefId());
+        newPayment.setAmount(newPaymentDto.getAmount());
+        newPayment.setCurrency(newPaymentDto.getCurrency());
+        newPayment.setStatus(newPaymentDto.getStatus());
+        newPayment.setNote(newPaymentDto.getNote());
+
+        when(paymentMapper.toEntity(newPaymentDto)).thenReturn(newPayment);
+        when(paymentRepository.save(any(Payment.class))).thenReturn(newPayment);
+        when(paymentMapper.toDto(newPayment)).thenReturn(newPaymentDto);
+
+        PaymentDto result = paymentService.create(newPaymentDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getCurrency()).isEqualTo("EUR");
+        assertThat(result.getAmount()).isEqualTo(new BigDecimal("200.00"));
+        verify(paymentMapper).toEntity(newPaymentDto);
+        verify(paymentRepository).save(any(Payment.class));
+        verify(paymentMapper).toDto(newPayment);
+    }
+
+    @Test
+    void shouldUpdatePayment() {
+        PaymentDto updatedDto = new PaymentDto();
+        updatedDto.setGuid(guid);
+        updatedDto.setInquiryRefId(payment.getInquiryRefId());
+        updatedDto.setAmount(new BigDecimal("150.00"));
+        updatedDto.setCurrency("GBP");
+        updatedDto.setStatus(PaymentStatus.PROCESSING);
+        updatedDto.setNote("Updated payment");
+
+        when(paymentRepository.findById(guid)).thenReturn(Optional.of(payment));
+        when(paymentMapper.updateEntity(updatedDto, payment)).thenReturn(payment);
+        when(paymentRepository.save(payment)).thenReturn(payment);
+        when(paymentMapper.toDto(payment)).thenReturn(updatedDto);
+
+        PaymentDto result = paymentService.update(guid, updatedDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getGuid()).isEqualTo(guid);
+        verify(paymentRepository).findById(guid);
+        verify(paymentMapper).updateEntity(updatedDto, payment);
+        verify(paymentRepository).save(payment);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNonExistentPayment() {
+        PaymentDto updatedDto = new PaymentDto();
+        when(paymentRepository.findById(guid)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> paymentService.update(guid, updatedDto))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Платеж не найден: " + guid);
+        verify(paymentRepository).findById(guid);
+    }
+
+    @Test
+    void shouldUpdateNote() {
+        String newNote = "Updated note";
+        when(paymentRepository.findById(guid)).thenReturn(Optional.of(payment));
+        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
+        when(paymentMapper.toDto(payment)).thenReturn(paymentDto);
+
+        PaymentDto result = paymentService.updateNote(guid, newNote);
+
+        assertThat(result).isNotNull();
+        assertThat(payment.getNote()).isEqualTo(newNote);
+        verify(paymentRepository).findById(guid);
+        verify(paymentRepository).save(payment);
+        verify(paymentMapper).toDto(payment);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNoteForNonExistentPayment() {
+        String newNote = "Updated note";
+        when(paymentRepository.findById(guid)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> paymentService.updateNote(guid, newNote))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Платеж не найден: " + guid);
+        verify(paymentRepository).findById(guid);
+    }
+
+    @Test
+    void shouldDeletePayment() {
+        when(paymentRepository.findById(guid)).thenReturn(Optional.of(payment));
+
+        paymentService.delete(guid);
+
+        verify(paymentRepository).findById(guid);
+        verify(paymentRepository).delete(payment);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistentPayment() {
+        when(paymentRepository.findById(guid)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> paymentService.delete(guid))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Платеж не найден: " + guid);
+        verify(paymentRepository).findById(guid);
     }
 }

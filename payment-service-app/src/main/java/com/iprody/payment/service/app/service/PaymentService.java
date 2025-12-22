@@ -10,4 +10,8 @@ import java.util.UUID;
 public interface PaymentService {
     PaymentDto get(UUID id);
     Page<PaymentDto> search(PaymentFilter filter, Pageable pageable);
+    PaymentDto create(PaymentDto paymentDto);
+    PaymentDto update(UUID id, PaymentDto paymentDto);
+    PaymentDto updateNote(UUID id, String note);
+    void delete(UUID id);
 }

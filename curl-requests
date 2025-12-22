@@ -1,0 +1,131 @@
+# Payment Service API - cURL запросы для тестирования
+
+# Базовый URL (измените на ваш адрес сервера)
+BASE_URL=http://localhost:8080/api/payments
+
+# ============================================
+# 1. CREATE - Создание нового платежа (POST)
+# ============================================
+curl -X POST "${BASE_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+    "amount": 100.50,
+    "currency": "USD",
+    "status": "CREATED",
+    "note": "Test payment creation"
+  }'
+
+# ============================================
+# 2. GET - Получение платежа по ID (GET)
+# ============================================
+# Замените {id} на реальный UUID платежа
+curl -X GET "${BASE_URL}/{id}"
+
+# Пример:
+# curl -X GET "${BASE_URL}/ac328a1a-1e60-4dd3-bee5-ed573d74c841"
+
+# ============================================
+# 3. SEARCH - Поиск платежей с фильтрацией (GET)
+# ============================================
+
+# Поиск всех платежей (первая страница, 25 элементов)
+curl -X GET "${BASE_URL}/search"
+
+# Поиск по валюте
+curl -X GET "${BASE_URL}/search?currency=USD"
+
+# Поиск по диапазону сумм
+curl -X GET "${BASE_URL}/search?minAmount=50&maxAmount=200"
+
+# Поиск по статусу
+curl -X GET "${BASE_URL}/search?status=APPROVED"
+
+# Поиск с сортировкой по сумме (по возрастанию)
+curl -X GET "${BASE_URL}/search?sortBy=amount&direction=asc"
+
+# Поиск с сортировкой по дате создания (по убыванию)
+curl -X GET "${BASE_URL}/search?sortBy=createdAt&direction=desc"
+
+# Поиск с пагинацией (страница 1, размер 10)
+curl -X GET "${BASE_URL}/search?page=1&size=10"
+
+# Комплексный поиск: валюта + диапазон сумм + статус + сортировка + пагинация
+curl -X GET "${BASE_URL}/search?currency=USD&minAmount=100&maxAmount=500&status=APPROVED&sortBy=amount&direction=asc&page=0&size=25"
+
+# ============================================
+# 4. UPDATE - Полное обновление платежа (PUT)
+# ============================================
+# Замените {id} на реальный UUID платежа
+curl -X PUT "${BASE_URL}/{id}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "guid": "{id}",
+    "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+    "amount": 150.75,
+    "currency": "EUR",
+    "status": "PROCESSING",
+    "note": "Updated payment",
+    "createdAt": "2025-01-01T12:00:00Z",
+    "updatedAt": "2025-01-02T12:00:00Z"
+  }'
+
+# Пример:
+# curl -X PUT "${BASE_URL}/ac328a1a-1e60-4dd3-bee5-ed573d74c841" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "guid": "ac328a1a-1e60-4dd3-bee5-ed573d74c841",
+#     "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+#     "amount": 150.75,
+#     "currency": "EUR",
+#     "status": "PROCESSING",
+#     "note": "Updated payment"
+#   }'
+
+# ============================================
+# 5. PATCH - Обновление только комментария (PATCH)
+# ============================================
+# Замените {id} на реальный UUID платежа
+curl -X PATCH "${BASE_URL}/{id}/note" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "note": "Updated note only"
+  }'
+
+# Пример:
+# curl -X PATCH "${BASE_URL}/ac328a1a-1e60-4dd3-bee5-ed573d74c841/note" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "note": "Updated note only"
+#   }'
+
+# ============================================
+# 6. DELETE - Удаление платежа (DELETE)
+# ============================================
+# Замените {id} на реальный UUID платежа
+curl -X DELETE "${BASE_URL}/{id}"
+
+# Пример:
+# curl -X DELETE "${BASE_URL}/ac328a1a-1e60-4dd3-bee5-ed573d74c841"
+
+# ============================================
+# Примеры использования с переменными
+# ============================================
+
+# Сохранение ID созданного платежа для дальнейшего использования
+# PAYMENT_ID=$(curl -X POST "${BASE_URL}" \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+#     "amount": 100.50,
+#     "currency": "USD",
+#     "status": "CREATED",
+#     "note": "Test payment"
+#   }' | jq -r '.guid')
+#
+# echo "Created payment ID: ${PAYMENT_ID}"
+#
+# # Использование сохраненного ID
+# curl -X GET "${BASE_URL}/${PAYMENT_ID}"
+# curl -X PUT "${BASE_URL}/${PAYMENT_ID}" ...
+# curl -X DELETE "${BASE_URL}/${PAYMENT_ID}"
