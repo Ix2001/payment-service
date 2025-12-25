@@ -1,12 +1,13 @@
 package com.iprody.payment.service.app.service;
 
+import com.iprody.payment.service.app.exception.EntityNotFoundException;
+import com.iprody.payment.service.app.exception.Operation;
 import com.iprody.payment.service.app.mapper.PaymentMapper;
 import com.iprody.payment.service.app.dto.PaymentDto;
 import com.iprody.payment.service.app.models.Payment;
 import com.iprody.payment.service.app.persistence.PaymentFilter;
 import com.iprody.payment.service.app.persistence.PaymentFilterFactory;
 import com.iprody.payment.service.app.repository.PaymentRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto get(UUID id) {
-        Payment payment = getById(id);
+        Payment payment = getById(id, Operation.FIND_BY_ID_OP);
         return paymentMapper.toDto(payment);
     }
 
@@ -46,7 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentDto update(UUID id, PaymentDto paymentDto) {
-        Payment payment = getById(id);
+        Payment payment = getById(id, Operation.UPDATE_OP);
         paymentMapper.updateEntity(paymentDto, payment);
         Payment savedPayment = paymentRepository.save(payment);
         return paymentMapper.toDto(savedPayment);
@@ -55,7 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentDto updateNote(UUID id, String note) {
-        Payment payment = getById(id);
+        Payment payment = getById(id, Operation.UPDATE_NOTE_OP);
         payment.setNote(note);
         Payment savedPayment = paymentRepository.save(payment);
         return paymentMapper.toDto(savedPayment);
@@ -64,12 +65,16 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void delete(UUID id) {
-        Payment payment = getById(id);
+        Payment payment = getById(id, Operation.DELETE_OP);
         paymentRepository.delete(payment);
     }
 
-    private Payment getById(UUID id) {
+    private Payment getById(UUID id, Operation operation) {
         return paymentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Платеж не найден: " + id));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Платеж не найден: " + id,
+                        operation,
+                        id
+                ));
     }
 }
