@@ -1,0 +1,162 @@
+# Payment Service API - cURL запросы с аутентификацией через KeyCloak
+
+# Базовые URL
+KEYCLOAK_URL=http://localhost:8085
+PAYMENT_SERVICE_URL=http://localhost:8080/api/payments
+
+# ============================================
+# 1. Получение JWT токена для admin_user
+# ============================================
+curl -X POST "${KEYCLOAK_URL}/realms/iprody-lms/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=basic_client" \
+  -d "client_secret=myclient-secret" \
+  -d "username=admin_user" \
+  -d "password=adminpassword"
+
+# Сохраните access_token из ответа в переменную ADMIN_TOKEN
+# Пример: ADMIN_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# ============================================
+# 2. Получение JWT токена для reader_user
+# ============================================
+curl -X POST "${KEYCLOAK_URL}/realms/iprody-lms/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=basic_client" \
+  -d "client_secret=myclient-secret" \
+  -d "username=reader_user" \
+  -d "password=readerpassword"
+
+# Сохраните access_token из ответа в переменную READER_TOKEN
+# Пример: READER_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# ============================================
+# 3. CREATE - Создание нового платежа (только admin)
+# ============================================
+# Замените {ADMIN_TOKEN} на реальный токен
+curl -X POST "${PAYMENT_SERVICE_URL}" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {ADMIN_TOKEN}" \
+  -d '{
+    "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+    "amount": 100.50,
+    "currency": "USD",
+    "status": "CREATED",
+    "note": "Test payment creation"
+  }'
+
+# ============================================
+# 4. GET - Получение платежа по ID (admin или reader)
+# ============================================
+# Замените {TOKEN} на ADMIN_TOKEN или READER_TOKEN
+# Замените {id} на реальный UUID платежа
+curl -X GET "${PAYMENT_SERVICE_URL}/{id}" \
+  -H "Authorization: Bearer {TOKEN}"
+
+# Пример:
+# curl -X GET "${PAYMENT_SERVICE_URL}/ac328a1a-1e60-4dd3-bee5-ed573d74c841" \
+#   -H "Authorization: Bearer ${ADMIN_TOKEN}"
+
+# ============================================
+# 5. SEARCH - Поиск платежей (admin или reader)
+# ============================================
+# Замените {TOKEN} на ADMIN_TOKEN или READER_TOKEN
+
+# Поиск всех платежей
+curl -X GET "${PAYMENT_SERVICE_URL}/search" \
+  -H "Authorization: Bearer {TOKEN}"
+
+# Поиск по валюте
+curl -X GET "${PAYMENT_SERVICE_URL}/search?currency=USD" \
+  -H "Authorization: Bearer {TOKEN}"
+
+# Поиск с сортировкой и пагинацией
+curl -X GET "${PAYMENT_SERVICE_URL}/search?page=0&size=10&sortBy=amount&direction=asc" \
+  -H "Authorization: Bearer {TOKEN}"
+
+# ============================================
+# 6. UPDATE - Полное обновление платежа (только admin)
+# ============================================
+# Замените {ADMIN_TOKEN} на реальный токен
+# Замените {id} на реальный UUID платежа
+curl -X PUT "${PAYMENT_SERVICE_URL}/{id}" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {ADMIN_TOKEN}" \
+  -d '{
+    "guid": "{id}",
+    "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+    "amount": 150.75,
+    "currency": "EUR",
+    "status": "PROCESSING",
+    "note": "Updated payment"
+  }'
+
+# ============================================
+# 7. PATCH - Обновление только комментария (только admin)
+# ============================================
+# Замените {ADMIN_TOKEN} на реальный токен
+# Замените {id} на реальный UUID платежа
+curl -X PATCH "${PAYMENT_SERVICE_URL}/{id}/note" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {ADMIN_TOKEN}" \
+  -d '{
+    "note": "Updated note only"
+  }'
+
+# ============================================
+# 8. DELETE - Удаление платежа (только admin)
+# ============================================
+# Замените {ADMIN_TOKEN} на реальный токен
+# Замените {id} на реальный UUID платежа
+curl -X DELETE "${PAYMENT_SERVICE_URL}/{id}" \
+  -H "Authorization: Bearer {ADMIN_TOKEN}"
+
+# ============================================
+# Примеры тестирования прав доступа
+# ============================================
+
+# Попытка создать платеж без токена (должна вернуть 401)
+curl -X POST "${PAYMENT_SERVICE_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+    "amount": 100.50,
+    "currency": "USD",
+    "status": "CREATED"
+  }'
+
+# Попытка создать платеж с токеном reader (должна вернуть 403 Forbidden)
+curl -X POST "${PAYMENT_SERVICE_URL}" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {READER_TOKEN}" \
+  -d '{
+    "inquiryRefId": "607ed0ea-cb8a-4ff8-a694-1213c314e65c",
+    "amount": 100.50,
+    "currency": "USD",
+    "status": "CREATED"
+  }'
+
+# Попытка просмотреть платеж с токеном reader (должна быть успешной)
+curl -X GET "${PAYMENT_SERVICE_URL}/search" \
+  -H "Authorization: Bearer {READER_TOKEN}"
+
+# ============================================
+# Использование с переменными в bash
+# ============================================
+
+# Получение токена и сохранение в переменную
+# ADMIN_TOKEN=$(curl -s -X POST "${KEYCLOAK_URL}/realms/iprody-lms/protocol/openid-connect/token" \
+#   -H "Content-Type: application/x-www-form-urlencoded" \
+#   -d "grant_type=password" \
+#   -d "client_id=basic_client" \
+#   -d "client_secret=myclient-secret" \
+#   -d "username=admin_user" \
+#   -d "password=adminpassword" | jq -r '.access_token')
+#
+# echo "Admin token: ${ADMIN_TOKEN}"
+#
+# # Использование токена
+# curl -X GET "${PAYMENT_SERVICE_URL}/search" \
+#   -H "Authorization: Bearer ${ADMIN_TOKEN}"

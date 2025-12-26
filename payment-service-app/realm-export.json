@@ -1,0 +1,67 @@
+{
+  "realm": "iprody-lms",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "basic_client",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "myclient-secret",
+      "redirectUris": [
+        "http://localhost:8085/*"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin_user",
+      "enabled": true,
+      "email": "admin@example.local",
+      "firstName": "Admin",
+      "lastName": "User",
+      "createdTimestamp": 1723468800000,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "adminpassword",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin"],
+      "requiredActions": []
+    },
+    {
+      "username": "reader_user",
+      "enabled": true,
+      "email": "reader@example.local",
+      "firstName": "Reader",
+      "lastName": "User",
+      "createdTimestamp": 1723468800000,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "readerpassword",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["reader"],
+      "requiredActions": []
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Admin user role"
+      },
+      {
+        "name": "reader",
+        "description": "Reader user role"
+      }
+    ]
+  }
+}
