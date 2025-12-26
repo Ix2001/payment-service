@@ -45,6 +45,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/payment-db
       SPRING_DATASOURCE_USERNAME: testuser
       SPRING_DATASOURCE_PASSWORD: test
+      KEYCLOAK_HOST: keycloak:8080
     restart: unless-stopped
 
   keycloak:
