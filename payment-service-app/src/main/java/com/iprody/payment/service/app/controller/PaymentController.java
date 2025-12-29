@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -36,6 +37,7 @@ public class PaymentController {
     })
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('admin', 'reader')")
     public PaymentDto get(
             @Parameter(description = "Payment UUID", required = true)
             @PathVariable UUID id) {
@@ -49,6 +51,7 @@ public class PaymentController {
     })
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('admin', 'reader')")
     public Page<PaymentDto> searchPayments(
             @Parameter(description = "Filter criteria")
             @ModelAttribute PaymentFilter filter,
@@ -76,6 +79,7 @@ public class PaymentController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto create(
             @Parameter(description = "Payment data", required = true)
             @RequestBody PaymentDto paymentDto) {
@@ -91,6 +95,7 @@ public class PaymentController {
     })
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto update(
             @Parameter(description = "Payment UUID", required = true)
             @PathVariable UUID id,
@@ -107,6 +112,7 @@ public class PaymentController {
     })
     @PatchMapping("/{id}/note")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('admin')")
     public PaymentDto updateNote(
             @Parameter(description = "Payment UUID", required = true)
             @PathVariable UUID id,
@@ -122,6 +128,7 @@ public class PaymentController {
     })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('admin')")
     public void delete(
             @Parameter(description = "Payment UUID", required = true)
             @PathVariable UUID id) {
